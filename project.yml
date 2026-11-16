@@ -1,0 +1,25 @@
+
+name: MAPMODIOS
+
+options:
+  bundleIdPrefix: vn.mapmodios
+  deploymentTarget:
+    iOS: "15.0"
+
+targets:
+  MAPMODIOS:
+    type: application
+    platform: iOS
+    sources:
+      - path: MAPMODIOS
+
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: vn.mapmodios.shopapp
+        PRODUCT_NAME: MAPMODIOS
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        IPHONEOS_DEPLOYMENT_TARGET: "15.0"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: "MAPMODIOS.SHOP"
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
