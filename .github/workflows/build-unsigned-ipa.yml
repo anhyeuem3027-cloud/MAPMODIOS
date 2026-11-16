@@ -1,0 +1,73 @@
+
+name: Build MAPMODIOS IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build unsigned iOS app
+        run: |
+          set -euo pipefail
+
+          xcodebuild \
+            -project MAPMODIOS.xcodeproj \
+            -scheme MAPMODIOS \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            clean build
+
+      - name: Package IPA
+        run: |
+          set -euo pipefail
+
+          APP_PATH="build/Build/Products/Release-iphoneos/MAPMODIOS.app"
+
+          test -d "$APP_PATH"
+
+          /usr/libexec/PlistBuddy \
+            -c "Print :CFBundleIdentifier" \
+            "$APP_PATH/Info.plist"
+
+          /usr/libexec/PlistBuddy \
+            -c "Print :CFBundleExecutable" \
+            "$APP_PATH/Info.plist"
+
+          rm -rf Payload MAPMODIOS-unsigned.ipa
+
+          mkdir -p Payload
+
+          cp -R "$APP_PATH" Payload/
+
+          /usr/bin/ditto \
+            -c -k --sequesterRsrc --keepParent \
+            Payload MAPMODIOS-unsigned.ipa
+
+          unzip -t MAPMODIOS-unsigned.ipa
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: MAPMODIOS-unsigned-IPA
+          path: MAPMODIOS-unsigned.ipa
+          if-no-files-found: error
